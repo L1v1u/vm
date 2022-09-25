@@ -1,0 +1,33 @@
+# WARNING: this file is not suitable for production, please use with caution
+version: '3'
+
+services:
+  db:
+    image: postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: vm_user
+      POSTGRES_PASSWORD: vm_db_pw
+      POSTGRES_DB: vm_db
+    ports:
+      - "5435:5432"
+  web:
+    image: vm
+    build: .
+    command: gunicorn -b 0.0.0.0:5005 vm.wsgi:app --reload
+    env_file:
+      - ./.flaskenv
+    environment:
+      DATABASE_URI: postgresql://vm_user:vm_db_pw@db/vm_db
+    volumes:
+      - ./vm:/code/vm
+    ports:
+      - "5005:5005"
+    depends_on:
+      - db
+
+
+
+volumes:
+  db_data:
